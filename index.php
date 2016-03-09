@@ -25,12 +25,15 @@ foreach ($dom->getElementsByTagName('div') as $node) {
 					$event = trim(substr($title, 20));
 					$offcampus = ((0 === strpos(strtolower($event), 'off-campus')) || (0 === strpos(strtolower($event), 'off campus')));
 					
-					$nodetext = (string)print_r($node,true);
-					
-					$regex = '/(?<=INCIDENT:).+?(?=OCCURRED:)/';
-					preg_match($regex, $nodetext, $output_array);
 
-					print_r($output_array[0]);
+
+					$nodetext = $node->nodeValue;
+					
+					$replace = array("\n");
+					$nodetext = str_replace($replace, " ", $nodetext);
+					preg_match_all("/(?<=INCIDENT)(.*?)(?=OCCURRED)/", $nodetext, $output_array);
+
+					print_r($output_array);
 
 					echo $nodetext;
 
