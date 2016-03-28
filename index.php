@@ -1,6 +1,6 @@
 <?php
 
-$server = "mysql:host=localhost;dbname=umd_alerts";
+$server = "mysql:host=localhost;dbname=alerts";
 $user = "root";
 $pass = "";
 
@@ -29,7 +29,7 @@ foreach ($dom->getElementsByTagName('div') as $node) {
 
 				if(0 === strpos($title, 'UMD Safety Notice')){
 
-					$event = trim(substr($title, 20));
+					$event = trim(substr($title, 19));
 					$offcampus = ((0 === strpos(strtolower($event), 'off-campus')) || (0 === strpos(strtolower($event), 'off campus')));
 					
 
@@ -38,10 +38,9 @@ foreach ($dom->getElementsByTagName('div') as $node) {
 					
 					$replace = array("\n");
 					$nodetext = str_replace($replace, " ", $nodetext);
-
 					//Get Incident
 					preg_match_all("/(?<=INCIDENT:).+?(?=OCCURRED:)/", $nodetext, $output_array);
-					$incident = trim($output_array[0][0]);
+					$incident = trim(str_replace("\xc2\xa0",' ',trim($output_array[0][0])));
 					if($offcampus == TRUE){
 						$incident = str_replace("Off-Campus", '', $incident);
 						$incident = str_replace("Off Campus", '', $incident);
@@ -76,7 +75,7 @@ foreach ($dom->getElementsByTagName('div') as $node) {
 					else{
 						preg_match_all("/(?<=LOCATION:).+?(?=UMPD)/", $nodetext, $output_array);
 					}
-					$location = str_replace("\xc2\xa0",'',trim($output_array[0][0],chr(0xC2).chr(0xA0)));
+					$location = trim(str_replace("\xc2\xa0",' ',trim($output_array[0][0],chr(0xC2).chr(0xA0))));
 
 
 					//Get Case #
@@ -91,44 +90,71 @@ foreach ($dom->getElementsByTagName('div') as $node) {
 
 					//Get Description
 					if($offcampus == TRUE){
-						preg_match_all("/(?<=PGPD CASE #: ................)(.*)(?=The Prince George's County Police Department is)/", $nodetext, $output_array);
+						preg_match_all("/(?<=PGPD CASE #: ).+?(?=\s)(.*)(?=The Prince George's County Police Department is)/", $nodetext, $output_array);
 					}
 					else{
 						preg_match_all("/(?<=BRIEF DETAILS:)(.*)(?=The University of Maryland Police Department is)/", $nodetext, $output_array);
 					}
-					$description = trim($output_array[0][0]);
+					$description = mysql_real_escape_string(trim(str_replace("\xc2\xa0",' ',trim($output_array[1][0]))));
 
 
 					echo $incident;
 					echo '<BR>';
-					if($offcampus = TRUE){
-						echo "OFF Campus";
+					if($offcampus == TRUE){
+						echo "OFF Campus"."  ".$offcampus;
 						echo '<BR>';
 					}
 					else{
 						echo "ON Campus";
 						echo '<BR>';
 					}
-					echo $occurred;
-					echo '<BR>';
+					
 					echo $o_date.'|'.$o_time.'<BR>';
 					if($reported != ''){
 						echo $reported;
 						echo '<BR>';
 						echo $r_date.'|'.$r_time.'<BR>';
 					}
+
+					$time_one = '';
+					$time_two = '';
+					if(strpos(strtolower($o_time), 'between') !== FALSE){
+						$time_one = trim(substr($o_time, 0, strpos(strtolower($o_time), 'and')));
+						$time_two = trim(substr($o_time, strpos(strtolower($o_time), 'and')));
+						
+						preg_match_all(@"/[01]?[0-9]([:.][0-9]{2})?(\s?[ap]\.m\.)?$/", $time_one, $output_array);
+						$time_one = $output_array[0][0];
+						preg_match_all(@"/[01]?[0-9]([:.][0-9]{2})?(\s?[ap]\.m\.)?$/", $time_two, $output_array);
+						$time_two = $output_array[0][0];
+
+						echo $time_one."<BR>";
+						echo $time_two."<BR>";
+
+
+					}
+					else{
+						$time_one = trim(str_replace("\xc2\xa0",' ',trim($o_time)));
+						preg_match_all(@"/[01]?[0-9]([:.][0-9]{2})?(\s?[ap]\.m\.)?$/", $time_one, $output_array);
+						$time_one = $output_array[0][0];
+						echo $time_one."<BR>";
+					}
+					
+
+
 					echo $location;
 					echo '<BR>';
 					echo $case;
 					echo '<BR>';
 					echo $description;
 					echo '<BR>';
+
+
 					//echo $nodetext;
 					
-					$query = $db->prepare("INSERT INTO `umd_alerts`.`alerts` (`incident`, `offcampus`, `date`, `time`, `location`, `case`, `description`) VALUES ('$incident', '$offcampus', '$o_date', '$o_time', '$location', '$case', '$description')");
-					//$query->execute();
+					$query = $db->prepare("INSERT INTO `alerts`.`alerts` (`incident`, `offcampus`, `date`, `time_one`, `time_two`, `location`, `case`, `description`) VALUES ('$incident', '$offcampus', '$o_date', '$time_one', '$time_two', '$location', '$case', '$description')");
+					$query->execute();
 
-					print_r($query);
+					//print_r($query);
 					echo "<BR>";
 					echo "<BR>";
 					
