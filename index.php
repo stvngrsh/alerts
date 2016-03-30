@@ -18,12 +18,24 @@
 	</style>
 </head>
 <body>
-	Some content
+	<div id="map"></div>
 
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcMUyi3FWcwPBiSCSGkAdUHcHA4_OcA_c&callback=initMap"></script>
 	<script src="js/jquery-1.11.3.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
 	<script>
+	// Create a map object and specify the DOM element for display.
+	var map;
+	$(document).ready(function(){
+		initMap()
+	});
 
+  	function initMap() {
+    	map = new google.maps.Map(document.getElementById('map'), {
+     		center: {lat: 38.987294, lng: -76.941964},
+    		zoom: 15
+    	});
+  	}
 	</script>
 
 </body>
