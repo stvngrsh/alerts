@@ -1,3 +1,14 @@
+<?php 
+	$db = mysqli_connect('localhost','root','root','scotchbox');
+  	$query = "SELECT * FROM alerts ORDER BY datetime";
+	$result = mysqli_query($db, $query);
+
+	while($row = mysqli_fetch_array($result, MYSQLI_ASSOC)){
+		$rows[] = $row;
+	}
+	mysqli_free_result($result);
+
+?>
 <!DOCTYPE html>
 <html lang="en" hola_ext_inject="disabled">
 <head>
@@ -26,16 +37,36 @@
 	<script>
 	// Create a map object and specify the DOM element for display.
 	var map;
-	$(document).ready(function(){
-		initMap()
-	});
 
   	function initMap() {
     	map = new google.maps.Map(document.getElementById('map'), {
      		center: {lat: 38.987294, lng: -76.941964},
     		zoom: 15
     	});
+
+<?php
+$iter = 1;
+    	
+foreach($rows as $row){
+	$id = $row['id'];
+	$lat = $row['lat'];
+	$lng = $row['long'];
+	$title = $row['incident'];
+
+?>
+    	var marker<?php echo $iter;?> = new google.maps.Marker({
+    		map: map,
+    		position: {lat: <?php echo $lat;?>, lng: <?php echo $lng;?>},
+    		title: <?php echo "'".$title."'";?>
+    	});
+<?php
+	$iter = $iter+1;
+}
+?>
   	}
+  	$(document).ready(function(){
+		initMap()
+	});
 	</script>
 
 </body>
