@@ -20,7 +20,6 @@
 			$s = $s.", College Park, MD";
 		}
 		$s = str_replace(" ", "+", $s);
-		echo $s."<BR>";
 
 		
 		$ch = curl_init();
@@ -30,10 +29,25 @@
 		curl_close($ch);
 
 		$latlong = json_decode($results);
+		$type = $latlong->results[0]->geometry->location_type;
+		
+
+		if($type == 'APPROXIMATE'){
+			
+			$ch = curl_init();
+			curl_setopt($ch, CURLOPT_URL, 'https://maps.googleapis.com/maps/api/place/textsearch/json?query='.$s.'&key='.$geoAPIkey);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+			$results = curl_exec($ch);
+			curl_close($ch);
+
+			$latlong = json_decode($results);
+		}
 		$lat = $latlong->results[0]->geometry->location->lat;
 		$lng = $latlong->results[0]->geometry->location->lng;
 
-		echo $lat." ".$lng."<BR>";
+		echo $s."<BR>";
+		echo $lat." ".$lng." ".$type."<BR>";
+		
 		$query = "UPDATE `alerts` SET `lat`='$lat', `long`='$lng' WHERE `id`='$id'";
 		$result = mysqli_query($db, $query);
 
