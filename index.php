@@ -44,26 +44,46 @@
     		zoom: 15
     	});
 
-<?php
-$iter = 1;
-    	
-foreach($rows as $row){
-	$id = $row['id'];
-	$lat = $row['lat'];
-	$lng = $row['long'];
-	$title = $row['incident'];
-
-?>
-    	var marker<?php echo $iter;?> = new google.maps.Marker({
-    		map: map,
-    		position: {lat: <?php echo $lat;?>, lng: <?php echo $lng;?>},
-    		title: <?php echo "'".$title."'";?>
-    	});
-<?php
-	$iter = $iter+1;
-}
-?>
-  	}
+		<?php
+		$iter = 0;
+		$latlngArr = [];
+		$latlngIter = [];
+		foreach($rows as $row){
+			$id = $row['id'];
+			$lat = $row['lat'];
+			$lng = $row['long'];
+			$title = $row['incident'];
+			$s = $lat." ".$lng;
+			if(in_array($s, $latlngArr)){
+				$pos = array_search($s, $latlngArr);
+				$i = $latlngIter[$pos];
+		?>	
+				var c = infowindow<?php echo $i;?>.getContent();
+				infowindow<?php echo $i;?>.setContent(c + <?php echo "'".$title."<BR>'";?>);
+		<?php
+			}
+			else{
+				array_push($latlngArr, $s);
+				array_push($latlngIter, $iter);
+		?>		
+				var infowindow<?php echo $iter;?> = new google.maps.InfoWindow({
+				    content: <?php echo "'".$title."<BR>'";?>
+				});
+		    	var marker<?php echo $iter;?> = new google.maps.Marker({
+		    		map: map,
+		    		position: {lat: <?php echo $lat;?>, lng: <?php echo $lng;?>},
+		    		animation: google.maps.Animation.DROP,
+		    		title: "Marker"
+		    	});
+		    	marker<?php echo $iter;?>.addListener('click', function() {
+				    infowindow<?php echo $iter;?>.open(map, marker<?php echo $iter;?>);
+				});
+		<?php
+				$iter = $iter+1;
+			}
+		}
+		?>
+  	}//Close initMap
   	$(document).ready(function(){
 		initMap()
 	});
