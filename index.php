@@ -29,6 +29,7 @@
 	</style>
 </head>
 <body>
+	<?php include 'nav.php'; ?>
 	<div id="map"></div>
 
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcMUyi3FWcwPBiSCSGkAdUHcHA4_OcA_c&callback=initMap"></script>
@@ -85,7 +86,7 @@
 		?>
   	}//Close initMap
   	$(document).ready(function(){
-		initMap()
+		initMap();
 	});
 	</script>
 
